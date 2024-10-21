@@ -1,33 +1,27 @@
-<!DOCTYPE html>
-<html>
-<style>
-table, th, td {
-  border:1px solid black;
+pipeline{
+    agent any
+    stages{
+        stage("Sourcecode GitHub"){
+            steps{
+                git url: 'https://github.com/shubham93096/apache.git',
+                    credentialsId: 'github-pat'
+            }
+        }
+         stage("Build Dockerfile Into DockerImage"){
+            steps{
+                sh 'docker build -t $JOB_NAME.$BUILD_ID .'
+                sh 'docker image tag $JOB_NAME.$BUILD_ID shubham7890/$JOB_NAME.$BUILD_ID'
+                sh 'docker image tag shubham7890/$JOB_NAME.$BUILD_ID shubham7890/$JOB_NAME:latest'
+            }
+        }
+        stage("Push Dockerimage"){
+            steps{
+                withCredentials([string(credentialsId: 'shubham7890', variable: 'dockerhubpassword')]) {
+    // some block
+    sh 'docker login -u shubham7890 -p ${dockerhubpassword}'
+    sh 'docker image push shubham7890/$JOB_NAME:latest'
 }
-</style>
-<body>
-
-<h2>A basic HTML table</h2>
-
-<table style="width:100%">
-  <tr>
-    <th>Company</th>
-    <th>Contact</th>
-    <th>Country</th>
-  </tr>
-  <tr>
-    <td>Alfreds Futterkiste</td>
-    <td>Maria Anders</td>
-    <td>Germany</td>
-  </tr>
-  <tr>
-    <td>Centro comercial Moctezuma</td>
-    <td>Francisco Chang</td>
-    <td>Mexico</td>
-  </tr>
-</table>
-
-<p>To understand the example better, we have added borders to the table.</p>
-
-</body>
-</html>
+            }
+        }
+    }
+}
